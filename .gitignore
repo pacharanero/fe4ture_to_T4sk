@@ -16,3 +16,6 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+fe4ture_to_T4sk_withAPIkey.rb
+T4sklist_managing_patients_on_the_list.feature
