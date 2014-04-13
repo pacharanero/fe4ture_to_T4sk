@@ -17,6 +17,7 @@ Gherkin Parser docs: http://cukes.info/api/gherkin/yardoc/Gherkin.html
 
 todo list:
 * need to finish the code that adds the scenarios and steps (the responder methods are there, just haven't quite done the 'collate it into a Task' bit (easy))
+* AddToOpenERP as new class containing XMLRPC calls
 * add due dates
-* abstract out API_KEY etc into a separate file to .gitignore
-* and of course I need to refactor it in Python to keep Python supremacist colleagues happy. Well, less unhappy anyway.
+* abstract out API_KEY, workspace_id, project_id etc into a separate file to .gitignore
+* and of course I need to refactor it in Python to keep Python supremacist colleagues happy. Well, less unhappy anyway. line.gsub (/ruby/, 'python')

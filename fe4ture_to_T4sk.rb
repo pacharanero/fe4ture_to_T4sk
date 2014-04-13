@@ -5,9 +5,12 @@ require 'rubygems'
 require 'json'
 require 'net/https'
 
+#read the README.md file for information on how to configure
+
 class MarcusHackyGherkinFormatter
   def initialize
-    #nothing needed, included for compatibility with Gherkin gem
+    @scenarios = []
+    @scenario_countr = 0
   end
   
   def feature(feature)
@@ -16,9 +19,8 @@ class MarcusHackyGherkinFormatter
     @feature_description = feature.description
   end
   
-  def background(background)
-    @background_info = background.keyword + ": " + background.name
-    #puts @background_info
+  def background(background) #regard Background as the 1st element in the @scenarios array - @scenarios[0]
+    @scenarios[0] = [background.keyword + background.name, "", ""]
   end
   
   def replay
@@ -26,10 +28,7 @@ class MarcusHackyGherkinFormatter
   end
   
   def step(step)
-    @steps = []
-    @steps << step
-    @step_info = step.keyword + " " + step.name
-    #puts @step_info
+    @scenarios[@scenario_countr][2] << "\n" + step.keyword + " " + step.name
   end
 
   def done
@@ -45,9 +44,9 @@ class MarcusHackyGherkinFormatter
   end
 
   def scenario(scenario)
-    @scenario_title = scenario.keyword + ": " + scenario.name
-    @scenario_comments =  scenario.comments
-    @scenario_description = scenario.description
+    @scenario_countr += 1
+    @scenario_title = scenario.keyword + ": " + scenario.name     #prepends the word "Scenario" to the scenario "name" text
+    @scenarios[@scenario_countr] = [ @scenario_title, scenario.description, "" ]
   end
 
   def scenario_outline(scenario_outline)
@@ -63,21 +62,21 @@ class MarcusHackyGherkinFormatter
   end
   
   def compose_feature_task
-    feature_task = [@feature_title, @feature_description]
+    list_of_scenarios = ""
+    @scenarios.each { |scenario| list_of_scenarios += scenario[0].to_s }
+    feature_task = [@feature_title, "#{@feature_description} \n Number of scenarios: #{@scenario_countr} \n List of scenarios: #{list_of_scenarios} "]
   end
-  
+
   def compose_scenario_task
-    #puts @scenario_title
-    #puts @scenario_comments
-    #puts @scenario_description
+    scenario_task = @scenarios
   end
   
 end
 
-#specify the .feature file source
+#specify the .feature file source as 1st command line arg
 source_file = ARGV[0]
 
-#gherkin parser passes to formatter object
+#gherkin parser passes items of the .feature file to the formatter object as method calls
 formatter = MarcusHackyGherkinFormatter.new
 parser = Gherkin::Parser::Parser.new(formatter)
 path = File.expand_path(source_file)
@@ -86,9 +85,9 @@ parser.parse(IO.read(path), path, 0)
 class SendToAsana
   
   def initialize
-    @api_key = 'YOUR_ASANA_API_KEY' #see README.md for tips on how to get this
-    @workspace_id = 'WORKSPACE_ID' #see README.md for tips on how to get this
-    @assignee = 'ASSIGNEE_EMAIL_HERE' 
+    @api_key = 'your asana API key'
+    @workspace_id = 'id of the workspace you want tasks to go to' 
+    @assignee = 'who do you want to assign the tasks to?'
     
     # set up HTTPS connection
     @uri = URI.parse("https://app.asana.com/api/1.0/tasks")
@@ -109,7 +108,7 @@ class SendToAsana
         "name" => task_name,
         "notes" => task_notes,
         "assignee" => @assignee,
-        "projects" => 'PROJECT_ID_HERE' #change this for the ID of the project you want to push tasks to
+        "projects" => 'id of the project you want tasks to go to'
       }
     }.to_json()
     
@@ -126,5 +125,22 @@ class SendToAsana
   
 end
 
+class SendToOpenERP
+
+  #I can't access the XMLRPC interface from out here in the wild, but from within T4's intranet it may be possible.
+
+end
+
+#initialize the sender object
 sender = SendToAsana.new
+
+#send the feature title, description etc to asana, and append the total number of scenarios in that feature
 sender.send(formatter.compose_feature_task[0].to_s, formatter.compose_feature_task[1].to_s)
+
+
+#send scenarios to Asana as separate Tasks WITH THE BACKGROUND PREPENDED TO EACH ONE
+all_scenarios = formatter.compose_scenario_task
+all_scenarios.each do |scenario|
+  sender.send(scenario[0], "#{all_scenarios[0][0]}: #{all_scenarios[0][2]} \n #{scenario[2]}" )
+end
+
