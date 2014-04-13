@@ -19,8 +19,13 @@ Gherkin Parser docs: http://cukes.info/api/gherkin/yardoc/Gherkin.html
 * need to finish the code that adds the scenarios and steps (the responder methods are there, just haven't quite done the 'collate it into a Task' bit (easy))
 * AddToOpenERP as new class containing XMLRPC calls
 * add due dates
+<<<<<<< HEAD
+* abstract out API_KEY, workspace_id, project_id etc into a separate file to .gitignore
+* and of course I need to refactor it in Python to keep Python supremacist colleagues happy. Well, less unhappy anyway. line.gsub (/ruby/, 'python')
+=======
 * abstract out API_KEY etc into a separate file to .gitignore
 * and of course I need to refactor it in Python to keep Python supremacist colleagues happy. Well, less unhappy anyway.
 
 #development:
 * I'm happy to try to develop this into more useful and generalisable code, since I think that a lot of teams that use Cucumber/Gherkin are likely to want to Task-ify the scenarios for Agile/Kanban workflows. Issue reporting, comments, suggestions and pull requests all welcome.
+>>>>>>> ce4755cdfb630a47afdd6cd686a7b3d7a803d08c
